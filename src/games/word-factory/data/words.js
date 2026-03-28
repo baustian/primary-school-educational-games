@@ -1,0 +1,80 @@
+export const words = [
+  {
+    word: 'GATO',
+    emoji: '🐱',
+    syllables: ['GA', 'TO'],
+    distractors: ['PE', 'SA'],
+  },
+  {
+    word: 'PERA',
+    emoji: '🍐',
+    syllables: ['PE', 'RA'],
+    distractors: ['LU', 'TO'],
+  },
+  {
+    word: 'LUNA',
+    emoji: '🌙',
+    syllables: ['LU', 'NA'],
+    distractors: ['BO', 'RE'],
+  },
+  {
+    word: 'ROSA',
+    emoji: '🌹',
+    syllables: ['RO', 'SA'],
+    distractors: ['GA', 'PI'],
+  },
+  {
+    word: 'PATO',
+    emoji: '🦆',
+    syllables: ['PA', 'TO'],
+    distractors: ['LI', 'NU'],
+  },
+  {
+    word: 'LIMON',
+    emoji: '🍋',
+    syllables: ['LI', 'MON'],
+    distractors: ['NU', 'TA'],
+  },
+  {
+    word: 'BOCA',
+    emoji: '👄',
+    syllables: ['BO', 'CA'],
+    distractors: ['MU', 'RA'],
+  },
+  {
+    word: 'CASA',
+    emoji: '🏠',
+    syllables: ['CA', 'SA'],
+    distractors: ['DE', 'PI'],
+  },
+  {
+    word: 'DEDO',
+    emoji: '👆',
+    syllables: ['DE', 'DO'],
+    distractors: ['GA', 'NA'],
+  },
+  {
+    word: 'RANA',
+    emoji: '🐸',
+    syllables: ['RA', 'NA'],
+    distractors: ['MO', 'PI'],
+  },
+  {
+    word: 'REMO',
+    emoji: '🚣',
+    syllables: ['RE', 'MO'],
+    distractors: ['PA', 'LI'],
+  },
+  {
+    word: 'LORO',
+    emoji: '🦜',
+    syllables: ['LO', 'RO'],
+    distractors: ['NU', 'TO'],
+  },
+  {
+    word: 'NUBE',
+    emoji: '☁️',
+    syllables: ['NU', 'BE'],
+    distractors: ['CA', 'MU'],
+  },
+]
