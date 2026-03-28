@@ -4,7 +4,7 @@ export default function GameCard({ game }) {
   return (
     <Link
       to={game.path}
-      className={`bg-gradient-to-br ${game.color} rounded-3xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 cursor-pointer block min-h-72 flex flex-col justify-between`}
+      className={`bg-gradient-to-br ${game.color} rounded-3xl p-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-72 w-full block`}
     >
       <div className="text-center">
         <div className="text-7xl mb-4">{game.icon}</div>

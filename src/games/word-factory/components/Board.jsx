@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import SyllableCard from './SyllableCard.jsx'
 
-export default function Board({ correctSyllables, allSyllables, onCorrect, onIncorrect }) {
+export default function Board({ correctSyllables, allSyllables, onCorrect, onIncorrect, onSkip }) {
   const [slots, setSlots] = useState(['', ''])
   const [feedbackSlot, setFeedbackSlot] = useState(null)
   const [isShaking, setIsShaking] = useState(false)
@@ -100,6 +100,16 @@ export default function Board({ correctSyllables, allSyllables, onCorrect, onInc
             isSelected={false}
           />
         ))}
+      </div>
+
+      {/* Skip Button */}
+      <div className="flex justify-center mt-8">
+        <button
+          onClick={onSkip}
+          className="bg-orange-500 text-white font-bold py-3 px-8 rounded-xl text-lg font-nunito hover:bg-orange-600 transition-colors shadow-lg"
+        >
+          Saltar Palabra
+        </button>
       </div>
     </div>
   )
