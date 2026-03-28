@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Factory building -->
+  <rect x="20" y="50" width="60" height="40" fill="#D84315" stroke="#8B4513" stroke-width="2"/>
+
+  <!-- Door -->
+  <rect x="40" y="65" width="20" height="25" fill="#6D4C41" stroke="#3E2723" stroke-width="1"/>
+  <circle cx="58" cy="77" r="1.5" fill="#FFD54F"/>
+
+  <!-- Windows -->
+  <rect x="25" y="55" width="12" height="12" fill="#4DD0E1" stroke="#00838F" stroke-width="1"/>
+  <line x1="31" y1="55" x2="31" y2="67" stroke="#00838F" stroke-width="1"/>
+  <line x1="25" y1="61" x2="37" y2="61" stroke="#00838F" stroke-width="1"/>
+
+  <rect x="63" y="55" width="12" height="12" fill="#4DD0E1" stroke="#00838F" stroke-width="1"/>
+  <line x1="69" y1="55" x2="69" y2="67" stroke="#00838F" stroke-width="1"/>
+  <line x1="63" y1="61" x2="75" y2="61" stroke="#00838F" stroke-width="1"/>
+
+  <!-- Smokestacks -->
+  <rect x="28" y="25" width="6" height="25" fill="#5D4037" stroke="#3E2723" stroke-width="1"/>
+  <circle cx="31" cy="22" r="4" fill="#9E9E9E" stroke="#424242" stroke-width="1"/>
+
+  <rect x="66" y="30" width="6" height="20" fill="#5D4037" stroke="#3E2723" stroke-width="1"/>
+  <circle cx="69" cy="27" r="3.5" fill="#9E9E9E" stroke="#424242" stroke-width="1"/>
+
+  <!-- Smoke -->
+  <circle cx="31" cy="18" r="2.5" fill="#BDBDBD" opacity="0.7"/>
+  <circle cx="28" cy="15" r="2" fill="#BDBDBD" opacity="0.6"/>
+  <circle cx="34" cy="15" r="2" fill="#BDBDBD" opacity="0.6"/>
+
+  <circle cx="69" cy="23" r="2" fill="#BDBDBD" opacity="0.7"/>
+  <circle cx="67" cy="20" r="1.5" fill="#BDBDBD" opacity="0.6"/>
+  <circle cx="71" cy="20" r="1.5" fill="#BDBDBD" opacity="0.6"/>
+
+  <!-- Roof -->
+  <polygon points="20,50 50,35 80,50" fill="#BF360C" stroke="#8B4513" stroke-width="2"/>
+</svg>
