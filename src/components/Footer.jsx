@@ -2,9 +2,9 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300 mt-12">
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="flex flex-col md:flex-row justify-between gap-8">
           {/* About Section */}
-          <div>
+          <div className="md:flex-1">
             <h3 className="text-xl font-bold text-white mb-4 font-nunito">
               Plataforma de Juegos Educativos
             </h3>
@@ -15,7 +15,7 @@ export default function Footer() {
           </div>
 
           {/* Developer Info */}
-          <div>
+          <div className="md:text-right">
             <h3 className="text-xl font-bold text-white mb-4 font-nunito">
               Desarrollado por
             </h3>
