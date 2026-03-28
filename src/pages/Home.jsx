@@ -19,9 +19,13 @@ export default function Home() {
       {/* Games Grid */}
       <main className="px-4 pb-12">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
             {availableGames.map(game => (
-              <GameCard key={game.id} game={game} />
+              <div key={game.id} className="flex justify-center lg:col-start-2">
+                <div className="max-w-sm w-full">
+                  <GameCard game={game} />
+                </div>
+              </div>
             ))}
           </div>
         </div>
