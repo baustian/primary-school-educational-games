@@ -1,7 +1,15 @@
-import { Link } from 'react-router-dom'
+import { useUser } from '../../../context/UserContext.jsx'
+import { useGame } from '../../../context/GameContext.jsx'
 
-export default function ResultScreen({ correctCount, totalWords }) {
+export default function ResultScreen({ correctCount, totalWords, onPlayAgain }) {
+  const { totalScore, userName } = useUser()
+  const { clearGameInfo } = useGame()
   const percentage = Math.round((correctCount / totalWords) * 100)
+
+  const handlePlayAgain = () => {
+    clearGameInfo()
+    onPlayAgain()
+  }
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -14,10 +22,10 @@ export default function ResultScreen({ correctCount, totalWords }) {
           ¡Excelente!
         </h1>
 
-        {/* Score Display */}
-        <div className="bg-gradient-to-r from-red-200 to-teal-200 rounded-2xl p-8 mb-8">
-          <p className="text-gray-700 text-xl font-nunito mb-2">
-            Palabras acertadas
+        {/* Session Score Display */}
+        <div className="bg-gradient-to-r from-red-200 to-teal-200 rounded-2xl p-6 mb-6">
+          <p className="text-gray-700 text-lg font-nunito mb-2">
+            Puntos en esta sesión
           </p>
           <p className="text-5xl font-bold text-red-600 font-nunito">
             {correctCount}/{totalWords}
@@ -25,6 +33,21 @@ export default function ResultScreen({ correctCount, totalWords }) {
           <p className="text-lg text-gray-600 font-nunito mt-2">
             {percentage}%
           </p>
+        </div>
+
+        {/* Accumulated Score Display */}
+        <div className="bg-blue-100 rounded-2xl p-6 mb-6 border-2 border-blue-500">
+          <p className="text-gray-700 text-lg font-nunito mb-2">
+            Puntos acumulados
+          </p>
+          <p className="text-4xl font-bold text-blue-600 font-nunito">
+            {totalScore}
+          </p>
+          {userName && (
+            <p className="text-sm text-gray-600 font-nunito mt-2">
+              ¡Vamos {userName}!
+            </p>
+          )}
         </div>
 
         {/* Message based on performance */}
@@ -50,24 +73,21 @@ export default function ResultScreen({ correctCount, totalWords }) {
             </p>
           )}
           <p className="text-gray-600 text-lg font-nunito">
-            Haz clic para jugar de nuevo
+            Nuevas palabras cada vez
           </p>
         </div>
 
         {/* Buttons */}
         <div className="space-y-4">
           <button
-            onClick={() => window.location.reload()}
+            onClick={handlePlayAgain}
             className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-bold py-4 rounded-2xl text-2xl font-nunito shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
           >
             Jugar de Nuevo
           </button>
-          <Link
-            to="/"
-            className="block w-full bg-teal-600 text-white font-bold py-4 rounded-2xl text-2xl font-nunito shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-          >
-            Ir a Inicio
-          </Link>
+          <p className="text-sm text-gray-600 font-nunito text-center">
+            O usa el botón "Inicio" en la barra superior para volver a casa
+          </p>
         </div>
       </div>
     </div>
