@@ -3,8 +3,10 @@ import { words } from './data/words.js'
 import ImageCard from './components/ImageCard.jsx'
 import Board from './components/Board.jsx'
 import ResultScreen from './components/ResultScreen.jsx'
+import EducationalInfoModal from '../../components/EducationalInfoModal.jsx'
 import { useUser } from '../../hooks/useUser'
 import { useGame } from '../../hooks/useGame'
+import { games } from '../../data/games.js'
 
 export default function WordFactory() {
   const { userName, addScore } = useUser()
@@ -104,9 +106,12 @@ export default function WordFactory() {
     )
   }
 
+  const gameData = games.find(g => g.id === 'word-factory')
+
   if (!gameStarted || scrambledWords.length === 0) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <EducationalInfoModal gameInfo={gameData?.educationalInfo} />
         <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-2xl w-full text-center border-4 border-red-600">
           <div className="text-9xl mb-6">🏭</div>
           <h1 className="text-5xl font-bold text-red-600 mb-4 font-nunito">
@@ -153,6 +158,7 @@ export default function WordFactory() {
 
   return (
     <div className="min-h-screen bg-white">
+      <EducationalInfoModal gameInfo={gameData?.educationalInfo} />
       {/* Game Content */}
       <main className="max-w-4xl mx-auto px-4 py-12">
         {/* Image/Word Card */}

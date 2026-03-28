@@ -13,14 +13,17 @@ export default function Header({ onChangeUserName }) {
       <div className="px-4 py-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           {/* Left: Title */}
-          <div className="flex-1">
+          <button
+            onClick={() => navigate('/')}
+            className="flex-1 text-left hover:opacity-80 transition-opacity cursor-pointer"
+          >
             <h1 className="text-3xl font-bold text-white font-nunito">
               Aprender Jugando
             </h1>
             <p className="text-sm text-red-100 font-nunito">
               Aprende divirtiéndote
             </p>
-          </div>
+          </button>
 
           {/* Right: User Info & Score */}
           <div className="flex items-center gap-6">
