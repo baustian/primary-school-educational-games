@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useUser } from '../context/UserContext.jsx'
+import { useUser } from '../hooks/useUser'
 
 export default function NameModal({ isOpen, onClose }) {
   const { userName, updateUserName } = useUser()
   const [tempName, setTempName] = useState(userName)
 
   useEffect(() => {
-    setTempName(userName)
-  }, [userName, isOpen])
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTempName(userName)
+    }
+  }, [isOpen, userName])
 
   if (!isOpen) return null
 

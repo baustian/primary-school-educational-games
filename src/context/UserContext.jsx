@@ -1,18 +1,9 @@
-import { createContext, useState, useContext, useEffect } from 'react'
-
-const UserContext = createContext()
+import { useState, useEffect } from 'react'
+import { UserContext } from './createUserContext'
 
 export function UserProvider({ children }) {
-  const [userName, setUserName] = useState('')
-  const [totalScore, setTotalScore] = useState(0)
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const savedName = localStorage.getItem('userName')
-    const savedScore = localStorage.getItem('totalScore')
-    if (savedName) setUserName(savedName)
-    if (savedScore) setTotalScore(parseInt(savedScore, 10))
-  }, [])
+  const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '')
+  const [totalScore, setTotalScore] = useState(() => parseInt(localStorage.getItem('totalScore') || '0', 10))
 
   // Save to localStorage when name or score changes
   useEffect(() => {
@@ -44,12 +35,4 @@ export function UserProvider({ children }) {
       {children}
     </UserContext.Provider>
   )
-}
-
-export function useUser() {
-  const context = useContext(UserContext)
-  if (!context) {
-    throw new Error('useUser must be used within UserProvider')
-  }
-  return context
 }

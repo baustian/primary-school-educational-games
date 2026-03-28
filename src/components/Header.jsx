@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { useUser } from '../context/UserContext.jsx'
-import { useGame } from '../context/GameContext.jsx'
+import { useUser } from '../hooks/useUser'
+import { useGame } from '../hooks/useGame'
 
 export default function Header({ onChangeUserName }) {
   const navigate = useNavigate()

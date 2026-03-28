@@ -1,6 +1,6 @@
-import { createContext, useState, useContext, useCallback } from 'react'
+import { useState, useCallback } from 'react'
+import { GameContext } from './createGameContext'
 
-const GameContext = createContext()
 const INITIAL_GAME_INFO = {
   name: null,
   currentIndex: 0,
@@ -32,12 +32,4 @@ export function GameProvider({ children }) {
       {children}
     </GameContext.Provider>
   )
-}
-
-export function useGame() {
-  const context = useContext(GameContext)
-  if (!context) {
-    throw new Error('useGame must be used within GameProvider')
-  }
-  return context
 }

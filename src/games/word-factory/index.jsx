@@ -3,8 +3,8 @@ import { words } from './data/words.js'
 import ImageCard from './components/ImageCard.jsx'
 import Board from './components/Board.jsx'
 import ResultScreen from './components/ResultScreen.jsx'
-import { useUser } from '../../context/UserContext.jsx'
-import { useGame } from '../../context/GameContext.jsx'
+import { useUser } from '../../hooks/useUser'
+import { useGame } from '../../hooks/useGame'
 
 export default function WordFactory() {
   const { userName, addScore } = useUser()

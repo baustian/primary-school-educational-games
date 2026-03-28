@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import GameCard from '../components/GameCard.jsx'
 import { games } from '../data/games.js'
-import { useGame } from '../context/GameContext.jsx'
+import { useGame } from '../hooks/useGame'
 
 export default function Home() {
   const { clearGameInfo } = useGame()
