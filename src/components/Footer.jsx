@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-12">
+    <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="flex flex-col md:flex-row justify-between gap-8">
           {/* About Section */}

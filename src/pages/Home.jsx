@@ -47,12 +47,10 @@ export default function Home() {
           <h3 className="text-3xl font-bold text-center text-gray-800 mb-12 font-nunito">
             Nuestros Juegos
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {availableGames.map(game => (
-              <div key={game.id} className="flex justify-center lg:col-start-2">
-                <div className="max-w-sm w-full">
-                  <GameCard game={game} />
-                </div>
+              <div key={game.id}>
+                <GameCard game={game} />
               </div>
             ))}
           </div>
