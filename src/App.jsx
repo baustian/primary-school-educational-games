@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react'
 import Home from './pages/Home.jsx'
 import WordFactory from './games/word-factory/index.jsx'
 import RuletaDePalabras from './games/ruleta-de-palabras/index.jsx'
+import EnglishExam from './games/english-exam/index.jsx'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 import NameModal from './components/NameModal.jsx'
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/word-factory" element={<WordFactory />} />
             <Route path="/ruleta-de-palabras" element={<RuletaDePalabras />} />
+            <Route path="/english-exam" element={<EnglishExam />} />
           </Routes>
         </main>
         <Footer />
