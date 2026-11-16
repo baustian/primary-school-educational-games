@@ -51,4 +51,30 @@ export const games = [
       methodology: 'El juego utiliza mecánicas competitivas de ronda por ronda, donde los jugadores deben encontrar palabras rápidamente. Combina el elemento azaroso de la ruleta con el desafío cognitivo de la generación de vocabulario.',
     },
   },
+  {
+    id: 'english-exam',
+    title: 'Hello English!',
+    description: 'Preparate para el examen oral de inglés AACI escuchando, hablando y escribiendo',
+    icon: '🦉',
+    color: 'from-indigo-600 to-purple-700',
+    path: '/english-exam',
+    available: true,
+    educationalInfo: {
+      title: 'Sobre Hello English!',
+      description: 'Hello English! prepara a los chicos de 1.º y 2.º grado para el examen oral de inglés AACI (nivel inicial, tipo Cambridge Starters). Recorre el vocabulario del libro Bright Ideas Starter y las preguntas de la guía de estudio del colegio, con voz en inglés y ayuda en castellano.',
+      objectives: [
+        'Comprender preguntas y órdenes orales simples en inglés (What’s this?, Touch your nose, Show me…)',
+        'Responder en voz alta con palabras y frases cortas (It’s a cat, Yes, I do, No, I can’t)',
+        'Reconocer y escribir el vocabulario básico: colores, números, animales, juguetes, cuerpo, familia, comida y casa',
+        'Ganar confianza para la situación de examen mediante simulacros con preguntas siempre distintas',
+      ],
+      educationalAspects: [
+        'Comprensión auditiva: cada palabra y pregunta se escucha en inglés británico, a velocidad normal o despacio',
+        'Expresión oral: reconocimiento de voz tolerante al acento, con respuesta modelo para repetir',
+        'Escritura: armado de palabras con fichas de letras en imprenta mayúscula',
+        'Progresión: de mirar y escuchar, a reconocer, escribir y finalmente hablar; los temas se desbloquean en orden',
+      ],
+      methodology: 'Cada tema tiene cuatro pasos de dificultad creciente: Aprender (tarjetas con audio), Escuchar (tocar el dibujo correcto), Escribir (fichas de letras) y Hablar (responder con el micrófono). Las consignas pueden escucharse en castellano. El Repaso rápido vuelve sobre las palabras que más cuestan y el Simulacro reproduce las 20 preguntas de la guía de la maestra.',
+    },
+  },
 ]
