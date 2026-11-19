@@ -72,7 +72,7 @@ export const games = [
         'Comprensión auditiva: cada palabra y pregunta se escucha en inglés británico, a velocidad normal o despacio',
         'Expresión oral: reconocimiento de voz tolerante al acento, con respuesta modelo para repetir',
         'Escritura: armado de palabras con fichas de letras en imprenta mayúscula',
-        'Progresión: de mirar y escuchar, a reconocer, escribir y finalmente hablar; los temas se desbloquean en orden',
+        'Progresión: de mirar y escuchar, a reconocer, escribir y finalmente hablar; los temas están numerados en un orden sugerido, pero se puede elegir cualquiera',
       ],
       methodology: 'Cada tema tiene cuatro pasos de dificultad creciente: Aprender (tarjetas con audio), Escuchar (tocar el dibujo correcto), Escribir (fichas de letras) y Hablar (responder con el micrófono). Las consignas pueden escucharse en castellano. El Repaso rápido vuelve sobre las palabras que más cuestan y el Simulacro reproduce las 20 preguntas de la guía de la maestra.',
     },

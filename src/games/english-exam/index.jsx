@@ -76,7 +76,10 @@ function buildActivity(topic, activity, { userName, age }) {
 
 // Mixed review weighted towards the words that were missed most.
 function buildReview(progress) {
-  const candidates = TOPICS.filter((t) => !t.special && progress.topics[t.id]?.listen).flatMap((topic) =>
+  const regular = TOPICS.filter((t) => !t.special)
+  const practised = regular.filter((t) => progress.topics[t.id]?.listen)
+  // Nothing practised yet (new player or cleared browser data): review everything.
+  const candidates = (practised.length ? practised : regular).flatMap((topic) =>
     topic.items.map((item) => ({ topic, item, weight: 1 + 3 * (progress.mistakes[mistakeKey(topic.id, item.en)] || 0) })),
   )
   const picked = []
@@ -134,9 +137,6 @@ function Game({ userName }) {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [screen.name, screen.runId])
-
-  const isUnlocked = (i) =>
-    settings.unlockAll || i === 0 || (progress.topics[TOPICS[i - 1].id]?.listen || 0) > 0
 
   const goMap = () => {
     stopSpeaking()
@@ -202,7 +202,6 @@ function Game({ userName }) {
       <MapScreen
         progress={progress}
         userName={userName}
-        isUnlocked={isUnlocked}
         onTopic={openTopic}
         onReview={startReview}
         onExam={() => setScreen({ name: 'examIntro' })}
@@ -218,7 +217,6 @@ function Game({ userName }) {
       <TopicScreen
         topic={findTopic(screen.topicId)}
         progress={progress}
-        unlockAll={settings.unlockAll}
         activityInfo={ACTIVITIES}
         onActivity={(activity) => startActivity(screen.topicId, activity)}
         onBack={goMap}

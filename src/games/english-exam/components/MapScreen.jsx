@@ -7,10 +7,9 @@ import { En, SmallButton, Stars } from './ui.jsx'
 const topicStars = (progress, topic) =>
   activitiesFor(topic).reduce((sum, a) => sum + (progress.topics[topic.id]?.[a] || 0), 0)
 
-export default function MapScreen({ progress, userName, isUnlocked, onTopic, onReview, onExam, onParents }) {
+export default function MapScreen({ progress, userName, onTopic, onReview, onExam, onParents }) {
   const [days] = useState(daysUntilExam)
-  const canReview = TOPICS.some((t) => !t.special && progress.topics[t.id]?.listen)
-  const greeting = `¡Hola${userName ? ` ${userName}` : ''}! Elegí un tema para practicar inglés. Empezá por el primero y seguí el camino.`
+  const greeting = `¡Hola${userName ? ` ${userName}` : ''}! Elegí el tema que quieras para practicar inglés. Los números son el orden sugerido.`
 
   return (
     <div className="space-y-8">
@@ -23,7 +22,7 @@ export default function MapScreen({ progress, userName, isUnlocked, onTopic, onR
             <En>Hello{userName ? `, ${userName}` : ''}!</En> 👋
           </p>
           <p className="text-lg text-gray-600 font-nunito">
-            Elegí un tema para practicar. Empezá por el primero y seguí el camino 🗺️
+            Elegí el tema que quieras. Los números son el orden sugerido 🗺️
           </p>
           {days > 0 && (
             <p className="mt-2 inline-block bg-amber-100 text-amber-800 font-bold font-nunito rounded-full px-4 py-1">
@@ -40,22 +39,17 @@ export default function MapScreen({ progress, userName, isUnlocked, onTopic, onR
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {TOPICS.map((topic, i) => {
-          const unlocked = isUnlocked(i)
           const stars = topicStars(progress, topic)
           const max = activitiesFor(topic).length * 3
           return (
             <button
               key={topic.id}
               type="button"
-              disabled={!unlocked}
               onClick={() => onTopic(topic.id)}
-              className={`relative rounded-3xl p-4 text-white text-center shadow-lg transition-all bg-gradient-to-br ${topic.color} ${
-                unlocked ? 'hover:scale-105 active:scale-95' : 'opacity-40 grayscale cursor-not-allowed'
-              }`}
+              className={`relative rounded-3xl p-4 text-white text-center shadow-lg transition-all bg-gradient-to-br ${topic.color} hover:scale-105 active:scale-95`}
             >
               <span className="absolute top-2 left-3 text-sm font-extrabold opacity-80">{i + 1}</span>
-              {!unlocked && <span className="absolute top-2 right-3 text-xl">🔒</span>}
-              {unlocked && stars === max && <span className="absolute top-2 right-3 text-xl">🏅</span>}
+              {stars === max && <span className="absolute top-2 right-3 text-xl">🏅</span>}
               <div className="text-5xl mb-2">{topic.icon}</div>
               <p className="text-xl font-extrabold font-nunito leading-tight">
                 <En>{topic.title}</En>
@@ -73,15 +67,10 @@ export default function MapScreen({ progress, userName, isUnlocked, onTopic, onR
         <button
           type="button"
           onClick={onReview}
-          disabled={!canReview}
-          className="rounded-3xl p-5 text-left bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg hover:scale-[1.02] transition-all disabled:opacity-40 disabled:hover:scale-100"
+          className="rounded-3xl p-5 text-left bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg hover:scale-[1.02] transition-all"
         >
           <p className="text-3xl font-extrabold font-nunito">🔁 Repaso rápido</p>
-          <p className="text-lg font-nunito">
-            {canReview
-              ? '8 preguntas mezcladas, con más práctica en lo que cuesta.'
-              : 'Se habilita cuando completes «Escuchar» en algún tema.'}
-          </p>
+          <p className="text-lg font-nunito">8 preguntas mezcladas, con más práctica en lo que cuesta.</p>
         </button>
         <button
           type="button"
@@ -105,7 +94,7 @@ export default function MapScreen({ progress, userName, isUnlocked, onTopic, onR
   )
 }
 
-export function TopicScreen({ topic, progress, unlockAll, onActivity, onBack, activityInfo }) {
+export function TopicScreen({ topic, progress, onActivity, onBack, activityInfo }) {
   const acts = activitiesFor(topic)
   return (
     <div className="space-y-6">
@@ -122,21 +111,15 @@ export function TopicScreen({ topic, progress, unlockAll, onActivity, onBack, ac
         {acts.map((id, i) => {
           const info = activityInfo[id]
           const stars = progress.topics[topic.id]?.[id] || 0
-          const unlocked = unlockAll || i === 0 || (progress.topics[topic.id]?.[acts[i - 1]] || 0) > 0
           return (
             <button
               key={id}
               type="button"
-              disabled={!unlocked}
               onClick={() => onActivity(id)}
-              className={`w-full flex items-center gap-4 rounded-3xl border-4 p-4 text-left transition-all ${
-                unlocked
-                  ? 'bg-white border-indigo-100 hover:border-indigo-400 hover:scale-[1.01]'
-                  : 'bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed'
-              }`}
+              className="w-full flex items-center gap-4 rounded-3xl border-4 p-4 text-left transition-all bg-white border-indigo-100 hover:border-indigo-400 hover:scale-[1.01]"
             >
               <span className="text-xl font-extrabold text-indigo-300 w-6">{i + 1}</span>
-              <span className="text-5xl">{unlocked ? info.icon : '🔒'}</span>
+              <span className="text-5xl">{info.icon}</span>
               <div className="flex-1">
                 <p className="text-2xl font-extrabold text-indigo-800 font-nunito">{info.title}</p>
                 <p className="text-base text-gray-500 font-nunito">{info.subtitle}</p>

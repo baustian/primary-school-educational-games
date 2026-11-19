@@ -4,7 +4,7 @@ const EMPTY = {
   topics: {}, // { [topicId]: { [activityId]: stars (1-3) } }
   mistakes: {}, // { "topicId:word": count } — drives "Repaso rápido"
   exam: { best: null, attempts: 0 },
-  settings: { uppercase: true, keyboard: false, unlockAll: false, age: 6 },
+  settings: { uppercase: true, keyboard: false, age: 6 },
 }
 
 const storageKey = (userName) => `englishExam:${userName || 'invitado'}`

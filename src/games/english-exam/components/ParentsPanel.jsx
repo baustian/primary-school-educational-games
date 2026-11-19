@@ -43,7 +43,7 @@ export default function ParentsPanel({ progress, setSetting, resetProgress, onBa
         </p>
         <ul className="space-y-2 text-gray-700 text-lg list-none">
           <li>⏱️ <strong>10 a 15 minutos por día</strong> rinden más que una hora el fin de semana. Un tema por día alcanza.</li>
-          <li>🗺️ Seguí el camino en orden: cada tema se desbloquea al completar «Escuchar» del anterior.</li>
+          <li>🗺️ Todos los temas y actividades están siempre disponibles. Los números marcan el orden sugerido (de lo más fácil a lo más difícil), pero pueden elegir libremente.</li>
           <li>🎤 Para hablar, usá <strong>Chrome o Edge</strong> (en compu, Android o iPhone) y aceptá el permiso del micrófono. En otros navegadores el juego pasa a modo «decilo en voz alta y compará».</li>
           <li>🧑‍🤝‍🧑 Acompañala/o al principio: si el reconocimiento de voz no la/lo entiende pero lo dijo bien, tocá «👍 Lo dijo bien (adulto)».</li>
           <li>💬 El botón «Ayuda» lee la consigna en castellano. Usalo al principio y después intentá que no haga falta.</li>
@@ -84,12 +84,6 @@ export default function ParentsPanel({ progress, setSetting, resetProgress, onBa
           help="Más difícil. Recomendado solo si ya escribe con soltura."
           checked={settings.keyboard}
           onChange={(v) => setSetting('keyboard', v)}
-        />
-        <Toggle
-          label="Desbloquear todos los temas"
-          help="Útil si querés saltar directo a un tema puntual."
-          checked={settings.unlockAll}
-          onChange={(v) => setSetting('unlockAll', v)}
         />
         <label className="flex items-center gap-3 text-lg font-bold text-gray-800">
           Edad (para la respuesta modelo «I’m …»):
