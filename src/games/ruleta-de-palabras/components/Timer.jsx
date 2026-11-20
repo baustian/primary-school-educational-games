@@ -1,46 +1,44 @@
-function Timer({ timeLeft, totalTime }) {
-  const percentage = (timeLeft / totalTime) * 100;
-  const isLowTime = timeLeft <= 3;
+const RADIUS = 45
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS
+
+function Timer({ timeLeft, totalTime, paused = false }) {
+  const fraction = totalTime > 0 ? Math.max(0, Math.min(1, timeLeft / totalTime)) : 0
+  const isLowTime = timeLeft <= 3
 
   return (
-    <div className="flex flex-col items-center justify-center py-6">
-      <div className="relative w-32 h-32 md:w-40 md:h-40">
-        {/* Circle background */}
+    <div className="flex flex-col items-center justify-center py-2">
+      <div className="relative w-28 h-28 md:w-36 md:h-36">
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r={RADIUS} fill="none" stroke="#e5e7eb" strokeWidth="6" />
           <circle
             cx="50"
             cy="50"
-            r="45"
+            r={RADIUS}
             fill="none"
-            stroke="#e5e7eb"
-            strokeWidth="4"
-          />
-          <circle
-            cx="50"
-            cy="50"
-            r="45"
-            fill="none"
-            stroke={isLowTime ? '#ef4444' : '#3b82f6'}
-            strokeWidth="4"
-            strokeDasharray={`${2 * Math.PI * 45}`}
-            strokeDashoffset={`${2 * Math.PI * 45 * (1 - percentage / 100)}`}
-            className="transition-all duration-100"
+            stroke={paused ? '#a855f7' : isLowTime ? '#ef4444' : '#3b82f6'}
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={CIRCUMFERENCE * (1 - fraction)}
+            className="transition-all duration-1000 ease-linear"
             style={{ transform: 'rotate(-90deg)', transformOrigin: '50px 50px' }}
           />
         </svg>
-
-        {/* Time display */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <p className={`text-5xl md:text-6xl font-bold ${isLowTime ? 'text-red-500 animate-pulse' : 'text-blue-600'}`}>
+            <p
+              className={`text-4xl md:text-5xl font-bold ${
+                paused ? 'text-purple-600' : isLowTime ? 'text-red-500 animate-pulse' : 'text-blue-600'
+              }`}
+            >
               {timeLeft}
             </p>
-            <p className="text-gray-600 font-semibold text-sm mt-2">segundos</p>
+            <p className="text-gray-600 font-semibold text-xs mt-1">{paused ? 'en pausa' : 'segundos'}</p>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default Timer;
+export default Timer

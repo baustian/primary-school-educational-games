@@ -1,296 +1,340 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { topics, gameConfig } from './data/gameData';
-import { useUser } from '../../hooks/useUser';
-import EducationalInfoModal from '../../components/EducationalInfoModal';
-import { games } from '../../data/games';
-import ModeSelector from './components/ModeSelector';
-import RoundScreen from './components/RoundScreen';
-import GameOverScreen from './components/GameOverScreen';
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { topics, gameConfig, letters } from './data/gameData'
+import { useUser } from '../../hooks/useUser'
+import EducationalInfoModal from '../../components/EducationalInfoModal'
+import { games } from '../../data/games'
+import ModeSelector from './components/ModeSelector'
+import RoundScreen from './components/RoundScreen'
+import GameOverScreen from './components/GameOverScreen'
+import { evaluateAnswer, firstLetter, speak, stopSpeaking, useListener } from './utils/speech'
+
+const SETTINGS_KEY = 'ruleta-de-palabras:settings'
+
+const DEFAULT_SETTINGS = {
+  mode: 'computer', // 'computer' | '2players'
+  time: gameConfig.defaultTime,
+  difficulty: 'normal', // 'facil' | 'normal' | 'dificil'
+  readAloud: true,
+  player2Name: '',
+}
+
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')
+    const merged = { ...DEFAULT_SETTINGS, ...saved }
+    if (!gameConfig.timeOptions.includes(merged.time)) merged.time = DEFAULT_SETTINGS.time
+    return merged
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
+function saveSettings(settings) {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+  } catch {
+    // Sin almacenamiento disponible: la configuración dura solo esta sesión.
+  }
+}
+
+const shuffle = (list) => {
+  const copy = [...list]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+
+const randomItem = (list) => list[Math.floor(Math.random() * list.length)]
+
+const EMPTY_SCORES = { player1: 0, player2: 0 }
 
 function RuletaDePalabras() {
-  const { userName, addScore } = useUser();
-  const gameInfo = games.find(g => g.id === 'ruleta-de-palabras')?.educationalInfo;
+  const { userName, addScore } = useUser()
+  const gameInfo = games.find((g) => g.id === 'ruleta-de-palabras')?.educationalInfo
 
-  const [gameState, setGameState] = useState('modeSelect'); // modeSelect, playing, gameOver
-  const [gameMode, setGameMode] = useState(null); // '2players' or 'computer'
-  const [currentRound, setCurrentRound] = useState(0);
-  const [scores, setScores] = useState({ player1: 0, player2: 0 });
-  const [currentTopic, setCurrentTopic] = useState(null);
-  const [currentPlayer, setCurrentPlayer] = useState(1); // 1 or 2
-  const [usedLetters, setUsedLetters] = useState([]);
-  const [roundWinner, setRoundWinner] = useState(null);
-  const [displayTime, setDisplayTime] = useState(gameConfig.timePerRound);
-  const [isTimeRunning, setIsTimeRunning] = useState(false);
-  const [computerWord, setComputerWord] = useState(null);
-  const timeoutHandledRef = useRef(false);
-  const computerPlayTimeoutRef = useRef(null);
+  const [settings, setSettings] = useState(loadSettings)
+  const [phase, setPhase] = useState('setup') // setup | playing | gameOver
+  const [scores, setScores] = useState(EMPTY_SCORES)
+  const [usedLetters, setUsedLetters] = useState([])
+  const [player, setPlayer] = useState(1)
+  // status: spinning (ruleta de temas) | answering | confirm (¿vale la palabra?) | result
+  const [turn, setTurn] = useState(null)
+  const [timeLeft, setTimeLeft] = useState(settings.time)
+  const [feedback, setFeedback] = useState(null)
+  const [pendingWord, setPendingWord] = useState(null)
+  const [history, setHistory] = useState([])
 
-  // Start a new round
-  const startNewRound = useCallback(() => {
-    const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-    setCurrentTopic(randomTopic);
-    setDisplayTime(gameConfig.timePerRound);
-    setIsTimeRunning(true);
-    setRoundWinner(null);
-  }, []);
+  const { supported: voiceSupported, denied: micDenied, listening, listen, cancel: cancelListening } = useListener()
 
-  // Handle timer countdown
+  const timerRef = useRef(null)
+  const topicBagRef = useRef([])
+  const resolvedTurnRef = useRef(0)
+  const latest = useRef({})
+
+  const isComputerTurn = settings.mode === 'computer' && player === 2
+  const names = {
+    1: userName || (settings.mode === 'computer' ? 'Vos' : 'Jugador 1'),
+    2: settings.mode === 'computer' ? 'Computadora' : settings.player2Name.trim() || 'Jugador 2',
+  }
+
+  const schedule = (fn, ms) => {
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(fn, ms)
+  }
+
+  // Cancelar todo al salir del juego.
+  useEffect(
+    () => () => {
+      clearTimeout(timerRef.current)
+      stopSpeaking()
+    },
+    [],
+  )
+
+  // Saca temas de una "bolsa" mezclada para que no se repitan hasta haber salido todos.
+  const drawTopic = (previous) => {
+    if (!topicBagRef.current.length) {
+      let bag = shuffle(topics)
+      if (previous && bag[bag.length - 1].id === previous.id) bag = [previous, ...bag.slice(0, -1)]
+      topicBagRef.current = bag
+    }
+    return topicBagRef.current.pop()
+  }
+
+  const beginTurn = (nextPlayer, number, cfg, previousTopic) => {
+    const topic = drawTopic(previousTopic)
+    cancelListening()
+    setPlayer(nextPlayer)
+    setTurn({ number, topic, status: 'spinning', result: null })
+    setTimeLeft(cfg.time)
+    setFeedback(null)
+    setPendingWord(null)
+    schedule(() => {
+      setTurn((t) => (t && t.number === number ? { ...t, status: 'answering' } : t))
+      if (cfg.readAloud) speak(topic.name)
+    }, gameConfig.spinDuration)
+  }
+
+  const startGame = (cfg) => {
+    setSettings(cfg)
+    saveSettings(cfg)
+    clearTimeout(timerRef.current)
+    topicBagRef.current = []
+    resolvedTurnRef.current = 0
+    setScores(EMPTY_SCORES)
+    setUsedLetters([])
+    setHistory([])
+    setPhase('playing')
+    beginTurn(1, 1, cfg, null)
+  }
+
+  const finishGame = (finalScores) => {
+    clearTimeout(timerRef.current)
+    cancelListening()
+    stopSpeaking()
+    setScores(finalScores)
+    setPhase('gameOver')
+    if (userName && finalScores.player1 > 0) addScore(finalScores.player1)
+  }
+
+  // result: { type: 'correct' | 'timeout' | 'pass' | 'computerMiss', letter?, word?, by? }
+  const resolveTurn = (result) => {
+    if (!turn || resolvedTurnRef.current === turn.number) return
+    resolvedTurnRef.current = turn.number
+    cancelListening()
+
+    let newUsed = usedLetters
+    let newScores = scores
+    if (result.type === 'correct') {
+      newUsed = [...usedLetters, result.letter]
+      const key = `player${player}`
+      newScores = { ...scores, [key]: scores[key] + gameConfig.pointsPerWord }
+      setUsedLetters(newUsed)
+      setScores(newScores)
+      setHistory((h) => [...h, { player, topic: turn.topic, letter: result.letter, word: result.word || null }])
+    }
+    setTurn({ ...turn, status: 'result', result })
+    setFeedback(null)
+    setPendingWord(null)
+    if (result.by === 'computer' && settings.readAloud) speak(result.word)
+
+    const gameEnds = letters.length - newUsed.length <= gameConfig.lettersLeftToFinish
+    const delay = result.by === 'computer' ? gameConfig.computerResultDuration : gameConfig.resultDuration
+    schedule(() => {
+      if (gameEnds) finishGame(newScores)
+      else beginTurn(player === 1 ? 2 : 1, turn.number + 1, settings, turn.topic)
+    }, delay)
+  }
+
+  // Los temporizadores usan siempre la última versión de las funciones.
   useEffect(() => {
-    if (!isTimeRunning || displayTime <= 0) return;
+    latest.current = { resolveTurn, turn, usedLetters }
+  })
 
-    const timer = setInterval(() => {
-      setDisplayTime((prev) => {
-        const newTime = prev <= 1 ? 0 : prev - 1;
-
-        // Handle timeout when timer reaches 0
-        if (newTime === 0 && !timeoutHandledRef.current) {
-          timeoutHandledRef.current = true;
-          // Schedule next round after a delay
-          setTimeout(() => {
-            setIsTimeRunning(false);
-            setRoundWinner(null);
-
-            setCurrentRound((round) => {
-              const nextRound = round + 1;
-              if (nextRound < gameConfig.totalRounds) {
-                // Next player's turn
-                setCurrentPlayer((player) => (player === 1 ? 2 : 1));
-                startNewRound();
-              } else {
-                setGameState('gameOver');
-              }
-              return nextRound;
-            });
-          }, 1500);
-        }
-
-        return newTime;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isTimeRunning, displayTime, startNewRound]);
-
-  // Initialize game with mode selection
-  const initializeGame = (mode) => {
-    setGameMode(mode);
-    setCurrentRound(0);
-    setScores({ player1: 0, player2: 0 });
-    setCurrentPlayer(1);
-    setUsedLetters([]);
-    setGameState('playing');
-
-    // Start first round
-    setTimeout(() => {
-      startNewRound();
-    }, 500);
-  };
-
-  // Handle letter selection
-  const handleLetterSelected = (letter) => {
-    if (!isTimeRunning || usedLetters.includes(letter)) {
-      return; // Can't select if time expired or letter already used
-    }
-
-    // Player scored!
-    setIsTimeRunning(false);
-    setRoundWinner(currentPlayer);
-    setUsedLetters([...usedLetters, letter]);
-
-    // If computer played, select and show a word
-    if (gameMode === 'computer' && currentPlayer === 2) {
-      const availableWords = currentTopic?.words?.filter(w => w[0].toUpperCase() === letter) || [];
-      if (availableWords.length > 0) {
-        const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
-        setComputerWord(randomWord);
-      }
-    } else {
-      setComputerWord(null);
-    }
-
-    // Update score
-    const newScores = { ...scores };
-    const playerKey = `player${currentPlayer}`;
-    newScores[playerKey] = (newScores[playerKey] || 0) + 10;
-    setScores(newScores);
-
-    // Move to next round or end game
-    setTimeout(() => {
-      if (currentRound + 1 < gameConfig.totalRounds) {
-        // Next player's turn
-        const nextPlayer = currentPlayer === 1 ? 2 : 1;
-        setCurrentPlayer(nextPlayer);
-        setCurrentRound((prev) => prev + 1);
-        setComputerWord(null);
-        startNewRound();
+  // Cuenta regresiva
+  const status = turn?.status
+  const turnNumber = turn?.number
+  useEffect(() => {
+    if (status !== 'answering') return undefined
+    const id = setTimeout(() => {
+      if (timeLeft <= 1) {
+        setTimeLeft(0)
+        latest.current.resolveTurn({ type: 'timeout' })
       } else {
-        setGameState('gameOver');
+        setTimeLeft(timeLeft - 1)
       }
-    }, 2000);
-  };
+    }, 1000)
+    return () => clearTimeout(id)
+  }, [status, turnNumber, timeLeft])
 
-  // Reset timeout ref when round starts
+  // Turno de la computadora
   useEffect(() => {
-    timeoutHandledRef.current = false;
-  }, [currentRound]);
+    if (status !== 'answering' || !isComputerTurn) return undefined
+    const thinking = Math.min(1500 + Math.random() * 2000, (settings.time - 1) * 1000)
+    const id = setTimeout(() => {
+      const { topic } = latest.current.turn
+      const options = topic.words.filter((word) => {
+        const letter = firstLetter(word)
+        return letters.includes(letter) && !latest.current.usedLetters.includes(letter)
+      })
+      const missChance = gameConfig.computerMissChance[settings.difficulty] ?? 0.15
+      if (!options.length || Math.random() < missChance) {
+        latest.current.resolveTurn({ type: 'computerMiss' })
+      } else {
+        const word = randomItem(options)
+        latest.current.resolveTurn({ type: 'correct', letter: firstLetter(word), word, by: 'computer' })
+      }
+    }, thinking)
+    return () => clearTimeout(id)
+  }, [status, turnNumber, isComputerTurn, settings.time, settings.difficulty])
 
-  // Auto-play computer turn
+  const canAnswer = phase === 'playing' && status === 'answering' && !isComputerTurn
+
+  const handleLetterSelected = (letter) => {
+    if (!canAnswer || usedLetters.includes(letter)) return
+    resolveTurn({ type: 'correct', letter, by: 'tap' })
+  }
+
+  const handleHeard = (alternatives) => {
+    const { turn: current, usedLetters: used, resolveTurn: resolve } = latest.current
+    if (current?.status !== 'answering') return
+    const evaluation = evaluateAnswer(alternatives, current.topic, used)
+    const { word, letter } = evaluation
+    switch (evaluation.kind) {
+      case 'valid':
+        resolve({ type: 'correct', letter, word, by: 'voice' })
+        break
+      case 'unknown':
+        setFeedback(null)
+        setPendingWord({ word, letter })
+        setTurn((t) => ({ ...t, status: 'confirm' }))
+        break
+      case 'used':
+        setFeedback({ tone: 'warn', text: `"${word}" empieza con ${letter}, pero esa letra ya salió. ¡Pensá otra!` })
+        break
+      case 'noLetter':
+        setFeedback({
+          tone: 'warn',
+          text: letter
+            ? `"${word}" empieza con ${letter}, que no está en el tablero. ¡Pensá otra!`
+            : 'No entendí la palabra. Probá de nuevo.',
+        })
+        break
+      default:
+        setFeedback({ tone: 'info', text: 'No te escuché. Tocá el micrófono y probá de nuevo.' })
+    }
+  }
+
+  const handleVoice = () => {
+    if (!canAnswer) return
+    if (listening) {
+      cancelListening()
+      return
+    }
+    setFeedback(null)
+    listen(handleHeard)
+  }
+
+  const confirmPending = (accepted) => {
+    if (status !== 'confirm' || !pendingWord) return
+    if (accepted) {
+      resolveTurn({ type: 'correct', letter: pendingWord.letter, word: pendingWord.word, by: 'voice' })
+    } else {
+      setPendingWord(null)
+      setFeedback({ tone: 'info', text: 'No vale. ¡Probá con otra palabra!' })
+      setTurn((t) => ({ ...t, status: 'answering' }))
+    }
+  }
+
+  // También se puede jugar con el teclado de la computadora.
+  const keyHandler = useRef(null)
   useEffect(() => {
-    if (gameMode !== 'computer' || currentPlayer !== 2 || !isTimeRunning || roundWinner !== null) {
-      return;
-    }
-
-    // Computer plays after 1-2 seconds of thinking
-    computerPlayTimeoutRef.current = setTimeout(() => {
-      const availableLetters = [
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-        'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-        'U', 'V', 'X', 'Y', 'Z',
-      ].filter(letter => !usedLetters.includes(letter));
-
-      let computerSucceeded = false;
-
-      if (availableLetters.length > 0 && currentTopic?.words) {
-        // Pick a random word from the topic
-        const randomWord = currentTopic.words[
-          Math.floor(Math.random() * currentTopic.words.length)
-        ];
-        const wordLetter = randomWord[0].toUpperCase();
-
-        // Only select if that letter is available
-        if (availableLetters.includes(wordLetter)) {
-          computerSucceeded = true;
-
-          // Inline the letter selection logic for computer
-          setIsTimeRunning(false);
-          setRoundWinner(2);
-          setUsedLetters(prev => [...prev, wordLetter]);
-
-          // Set the computer's word
-          const availableWords = currentTopic?.words?.filter(w => w[0].toUpperCase() === wordLetter) || [];
-          if (availableWords.length > 0) {
-            const randomChosenWord = availableWords[Math.floor(Math.random() * availableWords.length)];
-            setComputerWord(randomChosenWord);
-          }
-
-          // Update score
-          setScores(prev => ({
-            ...prev,
-            player2: prev.player2 + 10,
-          }));
-
-          // Move to next round or end game (longer delay for computer word visibility)
-          setTimeout(() => {
-            setCurrentRound((round) => {
-              const nextRound = round + 1;
-              if (nextRound < gameConfig.totalRounds) {
-                // Next player's turn
-                setCurrentPlayer(1);
-                setComputerWord(null);
-                startNewRound();
-              } else {
-                setGameState('gameOver');
-              }
-              return nextRound;
-            });
-          }, 3500);
-        }
-      }
-
-      // If computer couldn't find a valid letter, it loses the turn
-      if (!computerSucceeded) {
-        setIsTimeRunning(false);
-        setRoundWinner(null); // No points awarded
-
-        // Move to next player
-        setTimeout(() => {
-          setCurrentRound((round) => {
-            const nextRound = round + 1;
-            if (nextRound < gameConfig.totalRounds) {
-              // Next player's turn
-              setCurrentPlayer(1);
-              setComputerWord(null);
-              startNewRound();
-            } else {
-              setGameState('gameOver');
-            }
-            return nextRound;
-          });
-        }, 1500);
-      }
-    }, 1000 + Math.random() * 1000); // 1-2 seconds thinking time
-
-    return () => {
-      if (computerPlayTimeoutRef.current) {
-        clearTimeout(computerPlayTimeoutRef.current);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameMode, currentPlayer, isTimeRunning, roundWinner, usedLetters, currentTopic]);
-
-  const handleGameOver = () => {
-    // Add player1's score to user's global score (only in 2-player mode or when player1 wins against computer)
-    if (gameMode === '2players' && userName) {
-      addScore(scores.player1);
-    } else if (gameMode === 'computer' && userName) {
-      // In computer mode, player1 is always the user
-      addScore(scores.player1);
-    }
-  };
-
-  const resetGame = () => {
-    setGameState('modeSelect');
-    setGameMode(null);
-    setCurrentRound(0);
-    setScores({ player1: 0, player2: 0 });
-    setCurrentPlayer(1);
-    setUsedLetters([]);
-    setCurrentTopic(null);
-    setRoundWinner(null);
-    setDisplayTime(gameConfig.timePerRound);
-    setIsTimeRunning(false);
-    setComputerWord(null);
-  };
+    keyHandler.current = handleLetterSelected
+  })
+  const onKeyDown = useCallback((event) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target?.tagName)) return
+    const key = event.key?.toUpperCase()
+    if (key && key.length === 1 && letters.includes(key)) keyHandler.current?.(key)
+  }, [])
+  useEffect(() => {
+    if (phase !== 'playing') return undefined
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [phase, onKeyDown])
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-gradient-to-b from-blue-500 to-blue-600">
       <div className="p-4 flex-1">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl font-bold text-white text-center mb-8 drop-shadow-lg">
+          <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-6 drop-shadow-lg">
             🎡 Ruleta de Palabras
           </h1>
 
-          {gameState === 'modeSelect' && (
-            <ModeSelector onSelectMode={initializeGame} userName={userName} />
-          )}
-
-          {gameState === 'playing' && (
-            <RoundScreen
-              roundNumber={currentRound + 1}
-              totalRounds={gameConfig.totalRounds}
-              topic={currentTopic}
-              currentPlayer={currentPlayer}
-              gameMode={gameMode}
-              scores={scores}
-              roundWinner={roundWinner}
-              displayTime={displayTime}
-              isTimeRunning={isTimeRunning}
-              usedLetters={usedLetters}
-              computerWord={computerWord}
+          {phase === 'setup' && (
+            <ModeSelector
+              initialSettings={settings}
               userName={userName}
-              onLetterSelected={handleLetterSelected}
+              voiceSupported={voiceSupported}
+              onStart={startGame}
             />
           )}
 
-          {gameState === 'gameOver' && (
+          {phase === 'playing' && turn && (
+            <RoundScreen
+              turn={turn}
+              names={names}
+              currentPlayer={player}
+              isComputerTurn={isComputerTurn}
+              isComputerMode={settings.mode === 'computer'}
+              scores={scores}
+              timeLeft={timeLeft}
+              totalTime={settings.time}
+              usedLetters={usedLetters}
+              feedback={feedback}
+              pendingWord={pendingWord}
+              voiceSupported={voiceSupported}
+              micDenied={micDenied}
+              listening={listening}
+              canAnswer={canAnswer}
+              onLetterSelected={handleLetterSelected}
+              onVoice={handleVoice}
+              onConfirm={confirmPending}
+              onPass={() => canAnswer && resolveTurn({ type: 'pass' })}
+              onQuit={() => finishGame(scores)}
+            />
+          )}
+
+          {phase === 'gameOver' && (
             <GameOverScreen
               scores={scores}
-              gameMode={gameMode}
-              userName={userName}
-              onPlayAgain={() => {
-                handleGameOver();
-                resetGame();
-              }}
+              names={names}
+              isComputerMode={settings.mode === 'computer'}
+              history={history}
+              onPlayAgain={() => startGame(settings)}
+              onChangeSettings={() => setPhase('setup')}
             />
           )}
         </div>
@@ -298,7 +342,7 @@ function RuletaDePalabras() {
 
       <EducationalInfoModal gameInfo={gameInfo} />
     </div>
-  );
+  )
 }
 
-export default RuletaDePalabras;
+export default RuletaDePalabras
