@@ -48,7 +48,7 @@ export const games = [
         'Pensamiento Rápido: Estimula respuestas bajo presión temporal',
         'Clasificación Semántica: Agrupa palabras por categorías y temas',
       ],
-      methodology: 'El juego utiliza mecánicas competitivas de ronda por ronda, donde los jugadores deben encontrar palabras rápidamente. Combina el elemento azaroso de la ruleta con el desafío cognitivo de la generación de vocabulario.',
+      methodology: 'En cada turno una ruleta elige uno de más de 40 temas y el jugador tiene un tiempo configurable para encontrar una palabra. Puede tocar la letra inicial o decir la palabra en voz alta: el juego la reconoce y valida que sea del tema. Las letras usadas no se repiten y la partida termina cuando quedan 5 letras libres, así que hacia el final hay que pensar palabras con letras cada vez más difíciles.',
     },
   },
   {

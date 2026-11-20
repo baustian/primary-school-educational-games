@@ -23,7 +23,7 @@ export function UserProvider({ children }) {
   }
 
   const addScore = (points) => {
-    setTotalScore(totalScore + points)
+    setTotalScore((current) => current + points)
   }
 
   const resetScore = () => {
